@@ -1,0 +1,2277 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MVETL - My Vietnamese-English Translation Library</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        @media print {
+            body { font-family: 'Times New Roman', Times, serif !important; font-size: 13pt !important; color: #000 !important; background: #fff !important; }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            .print-container { width: 100% !important; margin: 0 !important; padding: 0 !important; box-shadow: none !important; }
+        }
+        .print-only { display: none; }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Top Navigation Header -->
+    <header class="bg-indigo-900 text-white shadow-md sticky top-0 z-40 no-print">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 p-2.5 rounded-xl shadow-inner flex items-center justify-center">
+                    <i class="fa-solid fa-book-bookmark text-xl text-amber-300"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                        MVETL <span class="text-xs font-normal px-2 py-0.5 bg-indigo-800 text-indigo-200 rounded-full border border-indigo-700">v2.6</span>
+                    </h1>
+                    <p class="text-xs text-indigo-200">My Vietnamese-English Translation Library</p>
+                </div>
+            </div>
+
+            <!-- Global Search & Cloud Sync Status -->
+            <div class="flex items-center gap-3 flex-1 max-w-md mx-auto">
+                <div class="relative w-full">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input type="text" id="globalSearchInput" placeholder="Tìm kiếm siêu nhạy (Chủ đề, tiêu đề, từ khóa...)..." 
+                        class="w-full pl-9 pr-4 py-2 bg-indigo-950/60 border border-indigo-700 rounded-lg text-sm text-white placeholder-indigo-300 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition-all">
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button id="cloudSyncBtn" onclick="triggerCloudSync()" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-lg text-sm font-medium shadow transition-all">
+                    <i class="fa-solid fa-cloud-arrow-up animate-pulse" id="syncIcon"></i>
+                    <span id="syncText">Đồng bộ đám mây</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs Bar -->
+        <div class="bg-indigo-950/80 border-t border-indigo-800/60 px-4">
+            <div class="max-w-7xl mx-auto flex overflow-x-auto space-x-1 py-2 scrollbar-none">
+                <button onclick="switchMainTab('dashboard')" class="main-tab-btn active px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap bg-indigo-800 text-white flex items-center gap-2">
+                    <i class="fa-solid fa-chart-pie"></i> Tổng quan & Tìm kiếm
+                </button>
+                <button onclick="switchMainTab('translations')" class="main-tab-btn px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap text-indigo-200 hover:bg-indigo-900 hover:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-folder-open"></i> Thư viện Bản dịch <span id="transCountBadge" class="ml-1 px-1.5 py-0.2 bg-indigo-700 text-xs rounded-full">0</span>
+                </button>
+                <button onclick="switchMainTab('glossary')" class="main-tab-btn px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap text-indigo-200 hover:bg-indigo-900 hover:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-book"></i> Thư viện Thuật ngữ <span id="glossaryCountBadge" class="ml-1 px-1.5 py-0.2 bg-indigo-700 text-xs rounded-full">0</span>
+                </button>
+                <button onclick="switchMainTab('structures')" class="main-tab-btn px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap text-indigo-200 hover:bg-indigo-900 hover:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-layer-group"></i> Thư viện Cấu trúc <span id="structureCountBadge" class="ml-1 px-1.5 py-0.2 bg-indigo-700 text-xs rounded-full">0</span>
+                </button>
+                <button onclick="switchMainTab('skills')" class="main-tab-btn px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap text-indigo-200 hover:bg-indigo-900 hover:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-lightbulb"></i> Thư viện Kỹ năng <span id="skillCountBadge" class="ml-1 px-1.5 py-0.2 bg-indigo-700 text-xs rounded-full">0</span>
+                </button>
+                <button onclick="switchMainTab('quiz')" class="main-tab-btn px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap text-indigo-200 hover:bg-indigo-900 hover:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-gamepad text-amber-300"></i> Quiz Thuật ngữ
+                </button>
+                <button onclick="openNewTranslationTab()" class="px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap bg-amber-500 hover:bg-amber-400 text-slate-900 flex items-center gap-2 shadow-sm ml-auto font-semibold">
+                    <i class="fa-solid fa-plus-circle"></i> Thêm Bản dịch Mới
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Open Translation Tabs Bar (For multi-tab working) -->
+    <div id="translationTabsBar" class="bg-slate-200 border-b border-slate-300 px-4 py-1.5 flex items-center gap-2 overflow-x-auto no-print">
+        <span class="text-xs font-semibold text-slate-600 uppercase tracking-wider mr-1"><i class="fa-solid fa-tabs"></i> Tabs:</span>
+        <div id="tabsListContainer" class="flex items-center gap-2">
+            <!-- Dynamically rendered translation tabs -->
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6">
+
+        <!-- TAB 1: DASHBOARD & SEARCH RESULTS -->
+        <div id="tab-dashboard" class="main-tab-content space-y-6">
+            <div class="bg-gradient-to-r from-indigo-900 to-blue-900 text-white rounded-2xl p-6 md:p-8 shadow-xl relative overflow-hidden">
+                <div class="absolute right-0 bottom-0 opacity-10 translate-x-10 translate-y-10">
+                    <i class="fa-solid fa-language text-9xl"></i>
+                </div>
+                <div class="relative z-10 max-w-2xl">
+                    <span class="bg-amber-400 text-slate-900 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider inline-block mb-3">Trung tâm học tập & dịch thuật</span>
+                    <h2 class="text-2xl md:text-3xl font-bold mb-2">Chào mừng bạn đến với MVETL</h2>
+                    <p class="text-indigo-200 text-sm md:text-base leading-relaxed mb-6">
+                        Quản lý toàn diện các bài dịch Anh-Việt, trích xuất thuật ngữ chuyên ngành, phân tích cấu trúc ngữ pháp nâng cao và đúc kết kỹ năng biên dịch chuyên nghiệp với tính năng sao lưu đám mây thời gian thực.
+                    </p>
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="openNewTranslationTab()" class="bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold px-5 py-2.5 rounded-xl shadow transition flex items-center gap-2 text-sm">
+                            <i class="fa-solid fa-pen-nib"></i> Tạo bản dịch mới ngay
+                        </button>
+                        <button onclick="switchMainTab('translations')" class="bg-indigo-800 hover:bg-indigo-700 text-white font-medium px-5 py-2.5 rounded-xl transition flex items-center gap-2 text-sm border border-indigo-700">
+                            <i class="fa-solid folder-open"></i> Xem thư viện bản dịch
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-4">
+                    <div class="p-3.5 bg-blue-50 text-blue-600 rounded-xl text-xl">
+                        <i class="fa-solid fa-newspaper"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 font-medium">Bản dịch</p>
+                        <h3 class="text-2xl font-bold text-slate-800" id="statTransCount">0</h3>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-4">
+                    <div class="p-3.5 bg-emerald-50 text-emerald-600 rounded-xl text-xl">
+                        <i class="fa-solid fa-book"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 font-medium">Thuật ngữ</p>
+                        <h3 class="text-2xl font-bold text-slate-800" id="statGlossaryCount">0</h3>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-4">
+                    <div class="p-3.5 bg-purple-50 text-purple-600 rounded-xl text-xl">
+                        <i class="fa-solid fa-layer-group"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 font-medium">Cấu trúc</p>
+                        <h3 class="text-2xl font-bold text-slate-800" id="statStructureCount">0</h3>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-4">
+                    <div class="p-3.5 bg-amber-50 text-amber-600 rounded-xl text-xl">
+                        <i class="fa-solid fa-lightbulb"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 font-medium">Kỹ năng</p>
+                        <h3 class="text-2xl font-bold text-slate-800" id="statSkillCount">0</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Results View Container -->
+            <div id="searchResultSection" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hidden">
+                <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
+                    <h3 class="font-bold text-slate-800 text-lg flex items-center gap-2">
+                        <i class="fa-solid fa-search text-indigo-600"></i> Kết quả tìm kiếm siêu nhạy (<span id="searchResultCount">0</span>)
+                    </h3>
+                    <button onclick="clearSearch()" class="text-sm text-slate-500 hover:text-slate-800"><i class="fa-solid fa-xmark"></i> Đóng tìm kiếm</button>
+                </div>
+                <div id="searchResultList" class="space-y-4">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Recent Translations List -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-slate-800 text-lg flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i> Bản dịch gần đây
+                    </h3>
+                    <button onclick="switchMainTab('translations')" class="text-sm font-semibold text-indigo-600 hover:text-indigo-800">Xem tất cả &rarr;</button>
+                </div>
+                <div id="recentTranslationsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: TRANSLATIONS LIBRARY -->
+        <div id="tab-translations" class="main-tab-content space-y-6 hidden">
+            <div class="flex flex-wrap justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex items-center gap-3 flex-wrap">
+                    <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-folder-open text-indigo-600"></i> Thư viện Bản dịch
+                    </h2>
+                    <select id="filterTransTopic" onchange="renderTranslationsLibrary()" class="bg-slate-50 border border-slate-300 rounded-lg text-sm px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="">Tất cả Chủ đề</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <button onclick="openBatchPdfModal()" class="bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow transition flex items-center gap-2">
+                        <i class="fa-solid fa-print"></i> Xuất PDF hàng loạt
+                    </button>
+                    <button onclick="openNewTranslationTab()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow transition flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Tạo bản dịch mới
+                    </button>
+                </div>
+            </div>
+
+            <div id="translationsLibraryGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+
+        <!-- TAB 3: GLOSSARY LIBRARY -->
+        <div id="tab-glossary" class="main-tab-content space-y-6 hidden">
+            <div class="flex flex-wrap justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex items-center gap-3 flex-wrap">
+                    <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-book text-emerald-600"></i> Thư viện Thuật ngữ Chuyên ngành
+                    </h2>
+                    <select id="filterGlossaryTopic" onchange="renderGlossaryLibrary()" class="bg-slate-50 border border-slate-300 rounded-lg text-sm px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="">Tất cả Chủ đề</option>
+                    </select>
+                </div>
+                <button onclick="openAddStandaloneModal('glossary')" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow transition flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Thêm thuật ngữ độc lập
+                </button>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 text-xs font-bold uppercase tracking-wider border-b border-slate-200">
+                                <th class="p-4">Chủ đề</th>
+                                <th class="p-4">Tiếng Việt (Vietnamese)</th>
+                                <th class="p-4">Tiếng Anh (English)</th>
+                                <th class="p-4">Nguồn gốc</th>
+                                <th class="p-4 text-right">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="glossaryTableBody" class="divide-y divide-slate-100 text-sm text-slate-700">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: STRUCTURE LIBRARY -->
+        <div id="tab-structures" class="main-tab-content space-y-6 hidden">
+            <div class="flex flex-wrap justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex items-center gap-3 flex-wrap">
+                    <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group text-purple-600"></i> Thư viện Cấu trúc Ngữ pháp
+                    </h2>
+                    <select id="filterStructureTopic" onchange="renderStructureLibrary()" class="bg-slate-50 border border-slate-300 rounded-lg text-sm px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="">Tất cả Chủ đề</option>
+                    </select>
+                </div>
+                <button onclick="openAddStandaloneModal('structure')" class="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow transition flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Thêm cấu trúc độc lập
+                </button>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-700 text-xs font-bold uppercase tracking-wider border-b border-slate-200">
+                                <th class="p-4">Chủ đề</th>
+                                <th class="p-4">Mô tả ngắn cấu trúc</th>
+                                <th class="p-4">Loại cấu trúc</th>
+                                <th class="p-4">Nguồn gốc</th>
+                                <th class="p-4 text-right">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="structureTableBody" class="divide-y divide-slate-100 text-sm text-slate-700">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 5: SKILL LIBRARY -->
+        <div id="tab-skills" class="main-tab-content space-y-6 hidden">
+            <div class="flex flex-wrap justify-between items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex items-center gap-3 flex-wrap">
+                    <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-lightbulb text-amber-600"></i> Thư viện Kỹ năng Biên dịch
+                    </h2>
+                </div>
+                <button onclick="openAddStandaloneModal('skill')" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow transition flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Thêm kỹ năng độc lập
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="skillsGridContainer">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+
+        <!-- TAB 6: GLOSSARY QUIZ -->
+        <div id="tab-quiz" class="main-tab-content space-y-6 hidden">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex flex-wrap justify-between items-center gap-4 border-b pb-4 mb-6">
+                    <div>
+                        <span class="text-xs font-bold text-amber-600 uppercase tracking-wider">Luyện tập ghi nhớ</span>
+                        <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-gamepad text-indigo-600"></i> Quiz Thuật ngữ Anh - Việt
+                        </h2>
+                    </div>
+                </div>
+
+                <!-- Quiz Configuration Panel -->
+                <div id="quizConfigPanel" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 uppercase mb-2">Hình thức kiểm tra</label>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <label class="cursor-pointer border rounded-xl p-3 flex items-center gap-3 hover:bg-slate-50 transition has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50">
+                                        <input type="radio" name="quizMode" value="mc" checked class="text-indigo-600 focus:ring-indigo-500">
+                                        <div>
+                                            <p class="font-bold text-sm text-slate-800">Multiple Choice</p>
+                                            <p class="text-[11px] text-slate-500">Trắc nghiệm 4 đáp án</p>
+                                        </div>
+                                    </label>
+                                    <label class="cursor-pointer border rounded-xl p-3 flex items-center gap-3 hover:bg-slate-50 transition has-[:checked]:border-indigo-600 has-[:checked]:bg-indigo-50">
+                                        <input type="radio" name="quizMode" value="typing" class="text-indigo-600 focus:ring-indigo-500">
+                                        <div>
+                                            <p class="font-bold text-sm text-slate-800">Typing</p>
+                                            <p class="text-[11px] text-slate-500">Gõ từ tiếng Anh tương ứng</p>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Số lượng câu hỏi (Tối đa 100)</label>
+                                <input type="number" id="quizQuestionCount" min="1" max="100" value="10" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
+                            </div>
+
+                            <div class="flex items-center gap-2 pt-2">
+                                <input type="checkbox" id="quizMixTopics" checked onchange="toggleQuizTopicCheckboxes()" class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500">
+                                <label for="quizMixTopics" class="text-sm font-semibold text-slate-700 cursor-pointer">Mix tất cả các chủ đề (Trộn ngẫu nhiên)</label>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <label class="block text-xs font-bold text-slate-600 uppercase mb-2">Chọn chủ đề thuật ngữ (Nếu không Mix tất cả)</label>
+                            <div id="quizTopicsCheckboxList" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t flex justify-end">
+                        <button onclick="startGlossaryQuiz()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-6 py-3 rounded-xl shadow transition flex items-center gap-2">
+                            <i class="fa-solid fa-play"></i> Bắt đầu làm Quiz
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Active Quiz Arena -->
+                <div id="quizArenaPanel" class="hidden space-y-6">
+                    <div class="flex justify-between items-center bg-slate-100 p-3 rounded-xl">
+                        <span class="text-sm font-bold text-slate-700">Câu hỏi <span id="quizCurrentIdx">1</span> / <span id="quizTotalIdx">10</span></span>
+                        <span class="text-sm font-bold text-emerald-600">Điểm: <span id="quizScore">0</span></span>
+                        <button onclick="quitQuiz()" class="text-xs text-red-600 hover:underline font-semibold"><i class="fa-solid fa-xmark"></i> Thoát Quiz</button>
+                    </div>
+
+                    <div class="bg-indigo-950 text-white p-8 rounded-2xl text-center space-y-2 shadow-inner">
+                        <span id="quizQuestionTopic" class="text-xs bg-indigo-800 text-indigo-200 px-3 py-1 rounded-full">Chủ đề</span>
+                        <p class="text-xs text-indigo-300 uppercase tracking-wider pt-2">Thuật ngữ Tiếng Việt:</p>
+                        <h3 id="quizQuestionPrompt" class="text-2xl md:text-3xl font-bold text-amber-300">Đa dạng sinh học</h3>
+                    </div>
+
+                    <!-- Multiple Choice Options Container -->
+                    <div id="quizMcOptions" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Dynamically rendered options -->
+                    </div>
+
+                    <!-- Typing Input Container -->
+                    <div id="quizTypingContainer" class="hidden space-y-4 max-w-lg mx-auto">
+                        <input type="text" id="quizTypingInput" placeholder="Nhập thuật ngữ tiếng Anh chính xác..." autocomplete="off"
+                            class="w-full bg-slate-50 border-2 border-slate-300 rounded-xl p-3.5 text-center text-lg font-semibold focus:outline-none focus:border-indigo-600">
+                        <button id="quizTypingSubmitBtn" onclick="submitTypingAnswer()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-xl shadow transition">Kiểm tra đáp án</button>
+                    </div>
+
+                    <!-- Feedback & Next Button -->
+                    <div id="quizFeedbackBox" class="hidden p-4 rounded-xl text-center space-y-3">
+                        <p id="quizFeedbackText" class="font-bold text-base"></p>
+                        <button onclick="nextQuizQuestion()" class="bg-slate-800 hover:bg-slate-700 text-white px-6 py-2 rounded-xl text-sm font-semibold shadow">Câu tiếp theo &rarr;</button>
+                    </div>
+                </div>
+
+                <!-- Quiz Summary Result -->
+                <div id="quizResultPanel" class="hidden text-center py-8 space-y-6">
+                    <div class="w-20 h-20 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center mx-auto text-4xl shadow-inner">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-slate-800">Hoàn thành bài kiểm tra!</h3>
+                        <p class="text-slate-600 mt-1">Bạn đã trả lời đúng <span id="quizFinalScore" class="font-bold text-emerald-600 text-xl">0</span> / <span id="quizFinalTotal" class="font-bold">0</span> câu hỏi.</p>
+                    </div>
+                    <div id="quizReviewList" class="max-w-2xl mx-auto text-left space-y-2 max-h-64 overflow-y-auto bg-slate-50 p-4 rounded-xl border">
+                        <!-- Detailed review -->
+                    </div>
+                    <button onclick="resetQuizUI()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-6 py-2.5 rounded-xl shadow">Làm lượt Quiz mới</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 7+: ACTIVE TRANSLATION EDITOR (Dynamic Tab Panels) -->
+        <div id="translationEditorsContainer">
+            <!-- Dynamically injected active translation editor workspace items -->
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 mt-auto py-6 no-print">
+        <div class="max-w-7xl mx-auto px-4 text-center text-sm text-slate-500">
+            <p>MVETL (My Vietnamese-English Translation Library) &copy; 2026. Công cụ hỗ trợ học tập và dịch thuật chuyên nghiệp.</p>
+            <p class="text-xs text-slate-400 mt-1">Dữ liệu tự động đồng bộ đám mây và lưu trữ cục bộ an toàn.</p>
+        </div>
+    </footer>
+
+    <!-- MODAL FOR ADDING STANDALONE ITEMS -->
+    <div id="standaloneModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div class="bg-indigo-900 text-white px-6 py-4 flex justify-between items-center">
+                <h3 id="standaloneModalTitle" class="font-bold text-lg">Thêm mới</h3>
+                <button onclick="closeStandaloneModal()" class="text-indigo-200 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div id="standaloneModalBody" class="p-6 space-y-4">
+                <!-- Dynamically injected form fields -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL FOR BATCH PDF EXPORT -->
+    <div id="batchPdfModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-rose-700 text-white px-6 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-file-pdf"></i> Xuất & In PDF Hàng Loạt</h3>
+                <button onclick="closeBatchPdfModal()" class="text-rose-200 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto space-y-5 flex-1">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Column 1: Select translations -->
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-xs font-bold text-slate-700 uppercase">1. Chọn các bản dịch cần xuất</h4>
+                            <button onclick="toggleSelectAllBatchPdf()" class="text-xs text-indigo-600 hover:underline font-semibold">Chọn / Bỏ chọn tất cả</button>
+                        </div>
+                        <div id="batchPdfAvailableList" class="border border-slate-200 rounded-xl p-2.5 max-h-72 overflow-y-auto space-y-2 bg-slate-50">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Column 2: Arrange order -->
+                    <div class="space-y-3">
+                        <h4 class="text-xs font-bold text-slate-700 uppercase">2. Thứ tự xuất in lần lượt (<span id="batchPdfSelectedCount">0</span>)</h4>
+                        <div id="batchPdfOrderedList" class="border border-slate-200 rounded-xl p-2.5 max-h-72 overflow-y-auto space-y-2 bg-slate-50">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-slate-50 px-6 py-4 border-t flex justify-end gap-3">
+                <button onclick="closeBatchPdfModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-sm font-medium">Hủy</button>
+                <button onclick="executeBatchPdfExport()" class="px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-sm font-semibold shadow flex items-center gap-2">
+                    <i class="fa-solid fa-print"></i> Xuất & In PDF Hàng Loạt
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL FOR TAB CLOSE CONFIRMATION -->
+    <div id="closeTabModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden p-6 text-center">
+            <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 text-xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="font-bold text-lg text-slate-800 mb-2">Đóng tab bản dịch?</h3>
+            <p class="text-sm text-slate-600 mb-6">Bạn có muốn sao lưu và lưu lại tất cả thay đổi của bản dịch này trước khi đóng tab không?</p>
+            <div class="flex gap-3 justify-center">
+                <button onclick="confirmCloseTab(false)" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-sm font-medium">Không lưu</button>
+                <button onclick="confirmCloseTab(true)" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-semibold shadow">Sao lưu & Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toastContainer" class="fixed bottom-6 right-6 z-50 space-y-2 pointer-events-none no-print"></div>
+
+    <!-- FIREBASE & APPLICATION LOGIC SCRIPT -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Predefined Topics List
+        const TOPICS = [
+            "Khoa học",
+            "Giáo dục",
+            "Tội phạm",
+            "Pháp luật",
+            "Sức khỏe",
+            "Môi trường - Thiên tai",
+            "Tài chính - Thương mại",
+            "Kinh tế - Xã hội",
+            "Chính trị - Ngoại giao",
+            "Giải trí",
+            "Thể thao",
+            "Tạo mới"
+        ];
+
+        // Global App State
+        let db = null;
+        let auth = null;
+        let userId = null;
+        let isCloudSynced = false;
+
+        let appData = {
+            translations: [],
+            glossary: [],
+            structures: [],
+            skills: []
+        };
+
+        // Active Tabs State
+        let openTabs = []; // Array of translation IDs currently open in tabs
+        let activeTabId = null; // Current active tab ID ('dashboard', 'translations', etc. or translation.id)
+        let tabToCloseId = null;
+
+        // Standalone modal context
+        let currentModalType = null;
+        let currentEditContext = null; // { type: 'glossary'|'structure'|'skill', id, transId }
+
+        // Batch PDF ordered selection state
+        let batchPdfSelectedIds = [];
+
+        // Quiz State
+        let quizState = {
+            questions: [],
+            currentIndex: 0,
+            score: 0,
+            mode: 'mc',
+            answered: false,
+            history: []
+        };
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            initTopicsDropdowns();
+            setupSearchListener();
+
+            // Initialize Firebase if available, otherwise localStorage fallback
+            try {
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'mvetl-default-app';
+                const firebaseConfigStr = typeof __firebase_config !== 'undefined' ? __firebase_config : null;
+                
+                if (firebaseConfigStr) {
+                    const firebaseConfig = JSON.parse(firebaseConfigStr);
+                    const app = initializeApp(firebaseConfig);
+                    db = getFirestore(app);
+                    auth = getAuth(app);
+
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                    userId = auth.currentUser?.uid || crypto.randomUUID();
+                    isCloudSynced = true;
+                    showToast("Đã kết nối đám mây thành công!", "success");
+                    await loadDataFromCloud(appId);
+                } else {
+                    loadFromLocalStorage();
+                }
+            } catch (err) {
+                console.warn("Cloud connection fallback to LocalStorage:", err);
+                loadFromLocalStorage();
+            }
+
+            // Initial render
+            updateDashboardStats();
+            renderTranslationsLibrary();
+            renderGlossaryLibrary();
+            renderStructureLibrary();
+            renderSkillsLibrary();
+            renderRecentTranslations();
+
+            // Open dashboard by default
+            switchMainTab('dashboard');
+        });
+
+        // --- TOPICS SETUP ---
+        function initTopicsDropdowns() {
+            const selects = ['filterTransTopic', 'filterGlossaryTopic', 'filterStructureTopic'];
+            selects.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    TOPICS.forEach(topic => {
+                        const opt = document.createElement('option');
+                        opt.value = topic;
+                        opt.textContent = topic;
+                        el.appendChild(opt);
+                    });
+                }
+            });
+
+            // Populate Quiz topic checkboxes
+            const quizTopicsContainer = document.getElementById('quizTopicsCheckboxList');
+            if (quizTopicsContainer) {
+                quizTopicsContainer.innerHTML = TOPICS.map(t => `
+                    <label class="flex items-center gap-2 text-xs text-slate-700 bg-white p-2 rounded-lg border cursor-pointer hover:bg-indigo-50">
+                        <input type="checkbox" value="${t}" class="quiz-topic-cb rounded text-indigo-600" disabled>
+                        <span class="truncate">${t}</span>
+                    </label>
+                `).join('');
+            }
+        }
+
+        window.triggerCloudSync = async function() {
+            const btn = document.getElementById('syncIcon');
+            btn.classList.add('fa-spin');
+            document.getElementById('syncText').textContent = "Đang đồng bộ...";
+
+            saveToLocalStorage();
+
+            if (db) {
+                try {
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'mvetl-default-app';
+                    await saveDataToCloud();
+                    showToast("Đã đồng bộ lên đám mây thành công!", "success");
+                } catch (e) {
+                    console.error("Sync error:", e);
+                    showToast("Lỗi đồng bộ đám mây, đã lưu cục bộ.", "error");
+                }
+            } else {
+                showToast("Đã lưu dữ liệu cục bộ thành công!", "success");
+            }
+
+            setTimeout(() => {
+                btn.classList.remove('fa-spin');
+                document.getElementById('syncText').textContent = "Đồng bộ đám mây";
+            }, 800);
+        }
+
+        async function saveDataToCloud() {
+            if (!db) return;
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'mvetl-default-app';
+
+            // Save translations
+            for (let item of appData.translations) {
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'translations', item.id), item);
+            }
+            // Save glossary
+            for (let item of appData.glossary) {
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'glossary', item.id), item);
+            }
+            // Save structures
+            for (let item of appData.structures) {
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'structures', item.id), item);
+            }
+            // Save skills
+            for (let item of appData.skills) {
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'skills', item.id), item);
+            }
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('mvetl_app_data', JSON.stringify(appData));
+        }
+
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('mvetl_app_data');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    appData = {
+                        translations: parsed.translations || [],
+                        glossary: parsed.glossary || [],
+                        structures: parsed.structures || [],
+                        skills: parsed.skills || []
+                    };
+                } catch (e) {
+                    console.error("Failed to parse localStorage data:", e);
+                    seedDemoData();
+                }
+            } else {
+                seedDemoData();
+            }
+        }
+
+        async function loadDataFromCloud(appId) {
+            if (!db) {
+                loadFromLocalStorage();
+                return;
+            }
+            try {
+                const [transSnap, glossSnap, structSnap, skillSnap] = await Promise.all([
+                    getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'translations')),
+                    getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'glossary')),
+                    getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'structures')),
+                    getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'skills'))
+                ]);
+
+                if (transSnap.empty && glossSnap.empty && structSnap.empty && skillSnap.empty) {
+                    loadFromLocalStorage();
+                    await saveDataToCloud();
+                } else {
+                    appData.translations = transSnap.docs.map(d => d.data());
+                    appData.glossary = glossSnap.docs.map(d => d.data());
+                    appData.structures = structSnap.docs.map(d => d.data());
+                    appData.skills = skillSnap.docs.map(d => d.data());
+                    saveToLocalStorage();
+                }
+            } catch (e) {
+                console.error("Cloud load failed, falling back to local storage:", e);
+                loadFromLocalStorage();
+            }
+        }
+
+        function getTopicOptionsHTML(selectedTopic = '') {
+            return TOPICS.map(t => `<option value="${escapeHtml(t)}" ${t === selectedTopic ? 'selected' : ''}>${escapeHtml(t)}</option>`).join('');
+        }
+
+        window.closeStandaloneModal = function() {
+            document.getElementById('standaloneModal').classList.add('hidden');
+            currentModalType = null;
+            currentEditContext = null;
+        }
+
+        function updateSyncStatusIndicator(synced) {
+            const indicator = document.getElementById('syncText');
+            if (indicator) {
+                indicator.textContent = synced ? "Đồng bộ đám mây" : "Chưa lưu";
+            }
+        }
+
+        function seedDemoData() {
+            const transId = 'demo-trans-1';
+            appData.translations = [{
+                id: transId,
+                topic: "Khoa học",
+                source: {
+                    headline: "Nghiên cứu mới về biến đổi khí hậu và tác động sinh thái",
+                    standfirst: "Các nhà khoa học vừa công bố báo cáo đột phá về sự suy giảm đa dạng sinh học.",
+                    body: "Nhiệt độ toàn cầu tăng cao đang đẩy nhiều loài động thực vật vào nguy cơ tuyệt chủng. Các chuyên gia kêu gọi hành động khẩn cấp.",
+                    author: "Nguyễn Văn A",
+                    sourceUrl: "https://vnexpress.net"
+                },
+                target: {
+                    headline: "New Research on Climate Change and Ecological Impact",
+                    standfirst: "Scientists have just published a breakthrough report on biodiversity loss.",
+                    body: "Rising global temperatures are driving numerous flora and fauna species to the brink of extinction. Experts call for urgent action.",
+                    author: "Nguyen Van A",
+                    sourceUrl: "https://vnexpress.net"
+                },
+                glossary: [
+                    { id: 'g1', topic: 'Khoa học', vi: 'Đa dạng sinh học', en: 'Biodiversity', sourceTransId: transId },
+                    { id: 'g2', topic: 'Khoa học', vi: 'Tuyệt chủng', en: 'Extinction', sourceTransId: transId }
+                ],
+                structures: [
+                    { id: 's1', topic: 'Khoa học', desc: 'Sử dụng hiện tại tiếp diễn để chỉ xu hướng đang diễn ra', type: 'Cấu trúc câu chỉ xu hướng', sourceTransId: transId }
+                ],
+                skills: [
+                    { id: 'sk1', title: 'Dịch thuật ngữ chuyên ngành khoa học', note: 'Luôn tra cứu từ điển chuyên ngành thay vì dịch nghĩa đen.', sourceTransId: transId }
+                ],
+                updatedAt: new Date().toISOString()
+            }];
+
+            appData.glossary = [
+                { id: 'g3', topic: 'Tài chính - Thương mại', vi: 'Lạm phát', en: 'Inflation', sourceTransId: null },
+                ...appData.translations[0].glossary
+            ];
+            appData.structures = [
+                { id: 's2', topic: 'Kinh tế - Xã hội', desc: 'Cấu trúc bị động khách quan (It is reported that...)', type: 'Câu bị động nâng cao', sourceTransId: null },
+                ...appData.translations[0].structures
+            ];
+            appData.skills = [
+                { id: 'sk2', title: 'Kỹ năng xử lý tiêu đề báo chí (Headline)', note: 'Bỏ mạo từ (a, an, the) và dùng thì hiện tại đơn cho sự kiện quá khứ.', sourceTransId: null },
+                ...appData.translations[0].skills
+            ];
+            saveToLocalStorage();
+        }
+
+        // --- NAVIGATION & TABS ---
+        window.switchMainTab = function(tabName) {
+            document.querySelectorAll('.main-tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.translation-editor-panel').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.main-tab-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-800', 'text-white');
+                btn.classList.add('text-indigo-200');
+            });
+
+            if (tabName === 'dashboard') {
+                document.getElementById('tab-dashboard').classList.remove('hidden');
+                updateDashboardStats();
+                renderRecentTranslations();
+            } else if (tabName === 'translations') {
+                document.getElementById('tab-translations').classList.remove('hidden');
+                renderTranslationsLibrary();
+            } else if (tabName === 'glossary') {
+                document.getElementById('tab-glossary').classList.remove('hidden');
+                renderGlossaryLibrary();
+            } else if (tabName === 'structures') {
+                document.getElementById('tab-structures').classList.remove('hidden');
+                renderStructureLibrary();
+            } else if (tabName === 'skills') {
+                document.getElementById('tab-skills').classList.remove('hidden');
+                renderSkillsLibrary();
+            } else if (tabName === 'quiz') {
+                document.getElementById('tab-quiz').classList.remove('hidden');
+                resetQuizUI();
+            }
+
+            activeTabId = tabName;
+            renderTabsBar();
+        }
+
+        window.renderTabsBar = function() {
+            const container = document.getElementById('tabsListContainer');
+            if (!container) return;
+
+            let html = '';
+            openTabs.forEach(id => {
+                const trans = appData.translations.find(t => t.id === id);
+                const title = trans ? (trans.source.headline || 'Bản dịch mới') : 'Bản dịch';
+                const isActive = activeTabId === id;
+                html += `
+                    <div class="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer transition ${isActive ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-300'}">
+                        <span onclick="switchToTranslationTab('${id}')" class="truncate max-w-[150px]">${title}</span>
+                        <button onclick="requestCloseTranslationTab(event, '${id}')" class="ml-1 hover:text-red-400 p-0.5"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        window.openNewTranslationTab = function() {
+            const newId = 'trans-' + Date.now();
+            const newTrans = {
+                id: newId,
+                topic: TOPICS[0],
+                source: { headline: '', standfirst: '', body: '', author: '', sourceUrl: '' },
+                target: { headline: '', standfirst: '', body: '', author: '', sourceUrl: '' },
+                glossary: [],
+                structures: [],
+                skills: [],
+                updatedAt: new Date().toISOString()
+            };
+            appData.translations.push(newTrans);
+            openTabs.push(newId);
+            renderTranslationEditorDOM(newId);
+            switchToTranslationTab(newId);
+            saveToLocalStorage();
+            triggerCloudSync();
+        }
+
+        window.openExistingTranslationTab = function(id) {
+            if (!openTabs.includes(id)) {
+                openTabs.push(id);
+                renderTranslationEditorDOM(id);
+            }
+            switchToTranslationTab(id);
+        }
+
+        window.switchToTranslationTab = function(id) {
+            document.querySelectorAll('.main-tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.translation-editor-panel').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.main-tab-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-800', 'text-white');
+                btn.classList.add('text-indigo-200');
+            });
+
+            const panel = document.getElementById(`editor-panel-${id}`);
+            if (panel) {
+                panel.classList.remove('hidden');
+            }
+            activeTabId = id;
+            renderTabsBar();
+        }
+
+        window.requestCloseTranslationTab = function(e, id) {
+            e.stopPropagation();
+            tabToCloseId = id;
+            document.getElementById('closeTabModal').classList.remove('hidden');
+        }
+
+        window.confirmCloseTab = function(shouldSave) {
+            const id = tabToCloseId;
+            document.getElementById('closeTabModal').classList.add('hidden');
+            if (shouldSave) {
+                saveCurrentTranslationForm(id);
+                triggerCloudSync();
+            }
+
+            // Remove from open tabs
+            openTabs = openTabs.filter(tId => tId !== id);
+            const panel = document.getElementById(`editor-panel-${id}`);
+            if (panel) panel.remove();
+
+            if (activeTabId === id) {
+                if (openTabs.length > 0) {
+                    switchToTranslationTab(openTabs[openTabs.length - 1]);
+                } else {
+                    switchMainTab('dashboard');
+                }
+            } else {
+                renderTabsBar();
+            }
+        }
+
+        // --- RENDER TRANSLATION EDITOR PANEL ---
+        function renderTranslationEditorDOM(id) {
+            const container = document.getElementById('translationEditorsContainer');
+            if (document.getElementById(`editor-panel-${id}`)) return; // Already exists
+
+            const trans = appData.translations.find(t => t.id === id) || {
+                id, topic: TOPICS[0], source: {}, target: {}, glossary: [], structures: [], skills: []
+            };
+
+            const div = document.createElement('div');
+            div.id = `editor-panel-${id}`;
+            div.className = 'translation-editor-panel space-y-6 hidden';
+            
+            div.innerHTML = `
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap justify-between items-center gap-4">
+                    <div>
+                        <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider">Trình soạn thảo bản dịch</span>
+                        <h2 class="text-xl font-bold text-slate-800" id="editorTitleDisplay-${id}">${trans.source.headline || 'Bản dịch mới'}</h2>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="exportSingleTranslationPDF('${id}')" class="bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow transition flex items-center gap-2">
+                            <i class="fa-solid fa-file-pdf"></i> Xuất PDF
+                        </button>
+                        <button onclick="saveCurrentTranslationForm('${id}'); triggerCloudSync();" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow transition flex items-center gap-2">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Lưu & Đồng bộ cấp tốc
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Topic & Settings -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Chủ đề bài báo</label>
+                        <select id="trans-topic-${id}" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
+                            ${getTopicOptionsHTML(trans.topic)}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 2 Columns: Source & Target -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Vietnamese Source Frame -->
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                        <div class="border-b pb-3 flex items-center justify-between">
+                            <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                                <span class="w-3 h-3 bg-red-500 rounded-full inline-block"></span> Bản gốc (Vietnamese Source Text)
+                            </h3>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">HEADLINE (Tiêu đề chính)</label>
+                            <input type="text" id="src-headline-${id}" value="${escapeHtml(trans.source.headline || '')}" oninput="updateEditorTitle('${id}')" placeholder="Nhập tiêu đề tiếng Việt..." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">STANDFIRST (Sapo / Đoạn mở đầu)</label>
+                            <textarea id="src-standfirst-${id}" rows="2" placeholder="Nhập sapo..." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500">${escapeHtml(trans.source.standfirst || '')}</textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">BODY (Thân bài báo)</label>
+                            <textarea id="src-body-${id}" rows="8" placeholder="Nhập toàn bộ nội dung bài gốc..." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500">${escapeHtml(trans.source.body || '')}</textarea>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">AUTHOR (Tác giả)</label>
+                                <input type="text" id="src-author-${id}" value="${escapeHtml(trans.source.author || '')}" placeholder="Tên tác giả..." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">SOURCE (Link nguồn báo)</label>
+                                <input type="text" id="src-url-${id}" value="${escapeHtml(trans.source.sourceUrl || '')}" placeholder="https://..." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- English Target Frame -->
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                        <div class="border-b pb-3 flex items-center justify-between">
+                            <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                                <span class="w-3 h-3 bg-blue-500 rounded-full inline-block"></span> Bản dịch (English Target Text)
+                            </h3>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">HEADLINE (English Headline)</label>
+                            <input type="text" id="tgt-headline-${id}" value="${escapeHtml(trans.target.headline || '')}" placeholder="Enter English headline..." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">STANDFIRST (English Standfirst)</label>
+                            <textarea id="tgt-standfirst-${id}" rows="2" placeholder="Enter standfirst..." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500">${escapeHtml(trans.target.standfirst || '')}</textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">BODY (English Body)</label>
+                            <textarea id="tgt-body-${id}" rows="8" placeholder="Enter translated body..." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500">${escapeHtml(trans.target.body || '')}</textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">TRANSLATOR</label>
+                            <input type="text" id="tgt-author-${id}" value="${escapeHtml(trans.target.author || '')}" placeholder="Enter translator name..." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUB-SECTIONS: Glossary, Structures, Skills -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Glossary Sub-section -->
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                        <div class="flex justify-between items-center border-b pb-3">
+                            <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2"><i class="fa-solid fa-book text-emerald-600"></i> Thuật ngữ (<span id="count-glossary-${id}">0</span>)</h4>
+                        </div>
+                        <div class="space-y-3 bg-slate-50 p-3 rounded-xl border">
+                            <h5 class="text-xs font-bold text-slate-700 uppercase">Thêm thuật ngữ mới</h5>
+                            <input type="text" id="new-glossary-vi-${id}" placeholder="Tiếng Việt..." class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs">
+                            <input type="text" id="new-glossary-en-${id}" placeholder="Tiếng Anh (English)..." class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs">
+                            <button onclick="addGlossaryItemToTrans('${id}')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-1.5 rounded-lg text-xs font-semibold shadow">Lưu thuật ngữ</button>
+                        </div>
+                        <div id="list-glossary-${id}" class="space-y-2 max-h-60 overflow-y-auto">
+                            <!-- Populated -->
+                        </div>
+                    </div>
+
+                    <!-- Structures Sub-section -->
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                        <div class="flex justify-between items-center border-b pb-3">
+                            <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2"><i class="fa-solid fa-layer-group text-purple-600"></i> Cấu trúc (<span id="count-structures-${id}">0</span>)</h4>
+                        </div>
+                        <div class="space-y-3 bg-slate-50 p-3 rounded-xl border">
+                            <h5 class="text-xs font-bold text-slate-700 uppercase">Thêm cấu trúc mới</h5>
+                            <textarea id="new-struct-desc-${id}" rows="2" placeholder="Mô tả ngắn cấu trúc..." class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs"></textarea>
+                            <input type="text" id="new-struct-type-${id}" placeholder="Loại cấu trúc (Ví dụ: Bị động...)" class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs">
+                            <button onclick="addStructureItemToTrans('${id}')" class="w-full bg-purple-600 hover:bg-purple-500 text-white py-1.5 rounded-lg text-xs font-semibold shadow">Lưu cấu trúc</button>
+                        </div>
+                        <div id="list-structures-${id}" class="space-y-2 max-h-60 overflow-y-auto">
+                            <!-- Populated -->
+                        </div>
+                    </div>
+
+                    <!-- Skills Sub-section -->
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+                        <div class="flex justify-between items-center border-b pb-3">
+                            <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2"><i class="fa-solid fa-lightbulb text-amber-600"></i> Kỹ năng (<span id="count-skills-${id}">0</span>)</h4>
+                        </div>
+                        <div class="space-y-3 bg-slate-50 p-3 rounded-xl border">
+                            <h5 class="text-xs font-bold text-slate-700 uppercase">Thêm kỹ năng mới</h5>
+                            <input type="text" id="new-skill-title-${id}" placeholder="Tên kỹ năng..." class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs">
+                            <textarea id="new-skill-note-${id}" rows="2" placeholder="Lưu ý về kỹ năng..." class="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs"></textarea>
+                            <button onclick="addSkillItemToTrans('${id}')" class="w-full bg-amber-600 hover:bg-amber-500 text-white py-1.5 rounded-lg text-xs font-semibold shadow">Lưu kỹ năng</button>
+                        </div>
+                        <div id="list-skills-${id}" class="space-y-2 max-h-60 overflow-y-auto">
+                            <!-- Populated -->
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.appendChild(div);
+            renderTranslationSubItems(id);
+        }
+
+        window.updateEditorTitle = function(id) {
+            const headlineVal = document.getElementById(`src-headline-${id}`).value;
+            const titleDisplay = document.getElementById(`editorTitleDisplay-${id}`);
+            if (titleDisplay) {
+                titleDisplay.textContent = headlineVal.trim() || 'Bản dịch mới';
+            }
+            renderTabsBar();
+        }
+
+        window.saveCurrentTranslationForm = function(id) {
+            const trans = appData.translations.find(t => t.id === id);
+            if (!trans) return;
+
+            trans.topic = document.getElementById(`trans-topic-${id}`).value;
+            trans.source.headline = document.getElementById(`src-headline-${id}`).value;
+            trans.source.standfirst = document.getElementById(`src-standfirst-${id}`).value;
+            trans.source.body = document.getElementById(`src-body-${id}`).value;
+            trans.source.author = document.getElementById(`src-author-${id}`).value;
+            trans.source.sourceUrl = document.getElementById(`src-url-${id}`).value;
+
+            trans.target.headline = document.getElementById(`tgt-headline-${id}`).value;
+            trans.target.standfirst = document.getElementById(`tgt-standfirst-${id}`).value;
+            trans.target.body = document.getElementById(`tgt-body-${id}`).value;
+            trans.target.author = document.getElementById(`tgt-author-${id}`).value;
+
+            trans.updatedAt = new Date().toISOString();
+
+            saveToLocalStorage();
+            updateDashboardStats();
+            renderTranslationsLibrary();
+            renderGlossaryLibrary();
+            renderStructureLibrary();
+            renderSkillsLibrary();
+            showToast("Đã lưu bản dịch thành công!", "success");
+        }
+
+        // --- SUB-ITEMS MANIPULATION WITHIN TRANSLATION ---
+        window.addGlossaryItemToTrans = function(transId) {
+            const vi = document.getElementById(`new-glossary-vi-${transId}`).value.trim();
+            const en = document.getElementById(`new-glossary-en-${transId}`).value.trim();
+            if (!vi || !en) {
+                showToast("Vui lòng nhập đầy đủ tiếng Việt và tiếng Anh!", "error");
+                return;
+            }
+
+            const trans = appData.translations.find(t => t.id === transId);
+            if (!trans) return;
+
+            const newItem = {
+                id: 'g-' + Date.now(),
+                topic: trans.topic,
+                vi,
+                en,
+                sourceTransId: transId,
+                sourceHeadline: trans.source.headline || 'Bản dịch'
+            };
+
+            trans.glossary.push(newItem);
+            appData.glossary.push(newItem);
+
+            document.getElementById(`new-glossary-vi-${transId}`).value = '';
+            document.getElementById(`new-glossary-en-${transId}`).value = '';
+
+            renderTranslationSubItems(transId);
+            renderGlossaryLibrary();
+            saveToLocalStorage();
+            triggerCloudSync();
+            showToast("Đã thêm thuật ngữ vào bản dịch!", "success");
+        }
+
+        window.removeGlossaryItemFromTrans = function(transId, itemId) {
+            const trans = appData.translations.find(t => t.id === transId);
+            if (trans) {
+                trans.glossary = trans.glossary.filter(i => i.id !== itemId);
+            }
+            appData.glossary = appData.glossary.filter(i => i.id !== itemId);
+            renderTranslationSubItems(transId);
+            renderGlossaryLibrary();
+            saveToLocalStorage();
+            triggerCloudSync();
+        }
+
+        window.addStructureItemToTrans = function(transId) {
+            const desc = document.getElementById(`new-struct-desc-${transId}`).value.trim();
+            const type = document.getElementById(`new-struct-type-${transId}`).value.trim();
+            if (!desc || !type) {
+                showToast("Vui lòng nhập đầy đủ mô tả và loại cấu trúc!", "error");
+                return;
+            }
+
+            const trans = appData.translations.find(t => t.id === transId);
+            if (!trans) return;
+
+            const newItem = {
+                id: 's-' + Date.now(),
+                topic: trans.topic,
+                desc,
+                type,
+                sourceTransId: transId,
+                sourceHeadline: trans.source.headline || 'Bản dịch'
+            };
+
+            trans.structures.push(newItem);
+            appData.structures.push(newItem);
+
+            document.getElementById(`new-struct-desc-${transId}`).value = '';
+            document.getElementById(`new-struct-type-${transId}`).value = '';
+
+            renderTranslationSubItems(transId);
+            renderStructureLibrary();
+            saveToLocalStorage();
+            triggerCloudSync();
+            showToast("Đã thêm cấu trúc vào bản dịch!", "success");
+        }
+
+        window.removeStructureItemFromTrans = function(transId, itemId) {
+            const trans = appData.translations.find(t => t.id === transId);
+            if (trans) {
+                trans.structures = trans.structures.filter(i => i.id !== itemId);
+            }
+            appData.structures = appData.structures.filter(i => i.id !== itemId);
+            renderTranslationSubItems(transId);
+            renderStructureLibrary();
+            saveToLocalStorage();
+            triggerCloudSync();
+        }
+
+        window.addSkillItemToTrans = function(transId) {
+            const title = document.getElementById(`new-skill-title-${transId}`).value.trim();
+            const note = document.getElementById(`new-skill-note-${transId}`).value.trim();
+            if (!title) {
+                showToast("Vui lòng nhập tên kỹ năng!", "error");
+                return;
+            }
+
+            const trans = appData.translations.find(t => t.id === transId);
+            if (!trans) return;
+
+            const newItem = {
+                id: 'sk-' + Date.now(),
+                title,
+                note,
+                sourceTransId: transId,
+                sourceHeadline: trans.source.headline || 'Bản dịch'
+            };
+
+            trans.skills.push(newItem);
+            appData.skills.push(newItem);
+
+            document.getElementById(`new-skill-title-${transId}`).value = '';
+            document.getElementById(`new-skill-note-${transId}`).value = '';
+
+            renderTranslationSubItems(transId);
+            renderSkillsLibrary();
+            saveToLocalStorage();
+            triggerCloudSync();
+            showToast("Đã thêm kỹ năng vào bản dịch!", "success");
+        }
+
+        window.removeSkillItemFromTrans = function(transId, itemId) {
+            const trans = appData.translations.find(t => t.id === transId);
+            if (trans) {
+                trans.skills = trans.skills.filter(i => i.id !== itemId);
+            }
+            appData.skills = appData.skills.filter(i => i.id !== itemId);
+            renderTranslationSubItems(transId);
+            renderSkillsLibrary();
+            saveToLocalStorage();
+            triggerCloudSync();
+        }
+
+        function renderTranslationSubItems(transId) {
+            const trans = appData.translations.find(t => t.id === transId);
+            if (!trans) return;
+
+            // Glossary
+            document.getElementById(`count-glossary-${transId}`).textContent = trans.glossary.length;
+            const glossList = document.getElementById(`list-glossary-${transId}`);
+            glossList.innerHTML = trans.glossary.map(item => `
+                <div class="bg-slate-50 border p-2.5 rounded-lg flex justify-between items-start text-xs">
+                    <div>
+                        <p class="font-semibold text-slate-800">${escapeHtml(item.vi)} &rarr; ${escapeHtml(item.en)}</p>
+                        <span class="text-[10px] text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">${escapeHtml(item.topic || trans.topic)}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="openEditItemModal('glossary', '${item.id}', '${transId}')" title="Chỉnh sửa" class="text-slate-400 hover:text-indigo-600"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="removeGlossaryItemFromTrans('${transId}', '${item.id}')" title="Xóa" class="text-slate-400 hover:text-red-500"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+            `).join('') || '<p class="text-xs text-slate-400 italic">Chưa có thuật ngữ nào.</p>';
+
+            // Structures
+            document.getElementById(`count-structures-${transId}`).textContent = trans.structures.length;
+            const structList = document.getElementById(`list-structures-${transId}`);
+            structList.innerHTML = trans.structures.map(item => `
+                <div class="bg-slate-50 border p-2.5 rounded-lg flex justify-between items-start text-xs">
+                    <div>
+                        <p class="font-semibold text-slate-800">${escapeHtml(item.desc)}</p>
+                        <span class="text-[10px] text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded">${escapeHtml(item.type)}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="openEditItemModal('structure', '${item.id}', '${transId}')" title="Chỉnh sửa" class="text-slate-400 hover:text-indigo-600"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="removeStructureItemFromTrans('${transId}', '${item.id}')" title="Xóa" class="text-slate-400 hover:text-red-500"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+            `).join('') || '<p class="text-xs text-slate-400 italic">Chưa có cấu trúc nào.</p>';
+
+            // Skills
+            document.getElementById(`count-skills-${transId}`).textContent = trans.skills.length;
+            const skillList = document.getElementById(`list-skills-${transId}`);
+            skillList.innerHTML = trans.skills.map(item => `
+                <div class="bg-slate-50 border p-2.5 rounded-lg flex justify-between items-start text-xs">
+                    <div>
+                        <p class="font-semibold text-slate-800">${escapeHtml(item.title)}</p>
+                        <p class="text-slate-500 text-[11px]">${escapeHtml(item.note)}</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="openEditItemModal('skill', '${item.id}', '${transId}')" title="Chỉnh sửa" class="text-slate-400 hover:text-indigo-600"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="removeSkillItemFromTrans('${transId}', '${item.id}')" title="Xóa" class="text-slate-400 hover:text-red-500"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </div>
+            `).join('') || '<p class="text-xs text-slate-400 italic">Chưa có kỹ năng nào.</p>';
+        }
+
+        // --- LIBRARIES RENDERERS ---
+        window.renderTranslationsLibrary = function() {
+            const filterTopic = document.getElementById('filterTransTopic').value;
+            const container = document.getElementById('translationsLibraryGrid');
+            if (!container) return;
+
+            const filtered = appData.translations.filter(t => !filterTopic || t.topic === filterTopic);
+
+            container.innerHTML = filtered.map(t => `
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between hover:shadow-md transition">
+                    <div>
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="px-2.5 py-1 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-full">${escapeHtml(t.topic)}</span>
+                            <span class="text-xs text-slate-400">${new Date(t.updatedAt || Date.now()).toLocaleDateString('vi-VN')}</span>
+                        </div>
+                        <h3 class="font-bold text-slate-800 text-lg mb-2 line-clamp-2">${escapeHtml(t.source.headline || 'Bản dịch chưa đặt tên')}</h3>
+                        <p class="text-xs text-slate-500 line-clamp-3 mb-4">${escapeHtml(t.source.standfirst || t.source.body || 'Không có mô tả...')}</p>
+                        <div class="flex flex-wrap gap-2 text-xs text-slate-600 mb-4">
+                            <span class="bg-slate-100 px-2 py-1 rounded"><i class="fa-solid fa-book text-emerald-600"></i> ${t.glossary.length} thuật ngữ</span>
+                            <span class="bg-slate-100 px-2 py-1 rounded"><i class="fa-solid fa-layer-group text-purple-600"></i> ${t.structures.length} cấu trúc</span>
+                            <span class="bg-slate-100 px-2 py-1 rounded"><i class="fa-solid fa-lightbulb text-amber-600"></i> ${t.skills.length} kỹ năng</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between pt-4 border-t border-slate-100">
+                        <button onclick="openExistingTranslationTab('${t.id}')" class="text-indigo-600 hover:text-indigo-800 font-semibold text-sm flex items-center gap-1.5">
+                            <i class="fa-solid fa-pen-to-square"></i> Mở chỉnh sửa
+                        </button>
+                        <div class="flex items-center gap-2">
+                            <button onclick="exportSingleTranslationPDF('${t.id}')" title="Xuất PDF" class="p-2 text-rose-600 hover:bg-rose-50 rounded-lg"><i class="fa-solid fa-file-pdf"></i></button>
+                            <button onclick="deleteTranslation('${t.id}')" title="Xóa bản dịch" class="p-2 text-red-500 hover:bg-red-50 rounded-lg"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>
+            `).join('') || `
+                <div class="col-span-full py-12 text-center text-slate-400">
+                    <i class="fa-solid fa-folder-open text-4xl mb-3"></i>
+                    <p>Không tìm thấy bản dịch nào.</p>
+                </div>
+            `;
+        }
+
+        window.renderGlossaryLibrary = function() {
+            const filterTopic = document.getElementById('filterGlossaryTopic').value;
+            const tbody = document.getElementById('glossaryTableBody');
+            if (!tbody) return;
+
+            const filtered = appData.glossary.filter(item => !filterTopic || item.topic === filterTopic);
+
+            tbody.innerHTML = filtered.map(item => {
+                const isFromTrans = item.sourceTransId !== null && item.sourceTransId !== undefined;
+                return `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-4"><span class="px-2 py-1 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded">${escapeHtml(item.topic)}</span></td>
+                        <td class="p-4 font-semibold text-slate-800">${escapeHtml(item.vi)}</td>
+                        <td class="p-4 font-semibold text-indigo-700">${escapeHtml(item.en)}</td>
+                        <td class="p-4 text-xs text-slate-500">
+                            ${isFromTrans ? `<button onclick="openExistingTranslationTab('${item.sourceTransId}')" class="text-indigo-600 hover:underline"><i class="fa-solid fa-link"></i> Từ bản dịch: ${escapeHtml(item.sourceHeadline || 'Xem')}</button>` : '<span class="text-amber-600 font-medium">Thuật ngữ độc lập</span>'}
+                        <td class="p-4 text-right space-x-1">
+                            ${isFromTrans ? 
+                                `<button onclick="openExistingTranslationTab('${item.sourceTransId}')" class="text-xs text-indigo-600 hover:underline font-medium">Mở bản dịch để sửa</button>` :
+                                `<button onclick="openEditItemModal('glossary', '${item.id}', null)" title="Chỉnh sửa" class="text-indigo-600 hover:text-indigo-800 p-1.5"><i class="fa-solid fa-pen"></i></button>
+                                 <button onclick="deleteStandaloneItem('glossary', '${item.id}')" title="Xóa" class="text-red-500 hover:text-red-700 p-1.5"><i class="fa-solid fa-trash"></i></button>`
+                            }
+                        </td>
+                    </tr>
+                `;
+            }).join('') || `<tr><td colspan="5" class="p-8 text-center text-slate-400">Chưa có thuật ngữ nào.</td></tr>`;
+        }
+
+        window.renderStructureLibrary = function() {
+            const filterTopic = document.getElementById('filterStructureTopic').value;
+            const tbody = document.getElementById('structureTableBody');
+            if (!tbody) return;
+
+            const filtered = appData.structures.filter(item => !filterTopic || item.topic === filterTopic);
+
+            tbody.innerHTML = filtered.map(item => {
+                const isFromTrans = item.sourceTransId !== null && item.sourceTransId !== undefined;
+                return `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-4"><span class="px-2 py-1 bg-purple-50 text-purple-700 text-xs font-semibold rounded">${escapeHtml(item.topic)}</span></td>
+                        <td class="p-4 font-semibold text-slate-800">${escapeHtml(item.desc)}</td>
+                        <td class="p-4"><span class="px-2 py-1 bg-slate-100 text-slate-700 text-xs rounded">${escapeHtml(item.type)}</span></td>
+                        <td class="p-4 text-xs text-slate-500">
+                            ${isFromTrans ? `<button onclick="openExistingTranslationTab('${item.sourceTransId}')" class="text-indigo-600 hover:underline"><i class="fa-solid fa-link"></i> Từ bản dịch</button>` : '<span class="text-amber-600 font-medium">Cấu trúc độc lập</span>'}
+                        <td class="p-4 text-right space-x-1">
+                            ${isFromTrans ? 
+                                `<button onclick="openExistingTranslationTab('${item.sourceTransId}')" class="text-xs text-indigo-600 hover:underline font-medium">Mở bản dịch để sửa</button>` :
+                                `<button onclick="openEditItemModal('structure', '${item.id}', null)" title="Chỉnh sửa" class="text-indigo-600 hover:text-indigo-800 p-1.5"><i class="fa-solid fa-pen"></i></button>
+                                 <button onclick="deleteStandaloneItem('structure', '${item.id}')" title="Xóa" class="text-red-500 hover:text-red-700 p-1.5"><i class="fa-solid fa-trash"></i></button>`
+                            }
+                        </td>
+                    </tr>
+                `;
+            }).join('') || `<tr><td colspan="5" class="p-8 text-center text-slate-400">Chưa có cấu trúc nào.</td></tr>`;
+        }
+
+        window.renderSkillsLibrary = function() {
+            const container = document.getElementById('skillsGridContainer');
+            if (!container) return;
+
+            container.innerHTML = appData.skills.map(item => {
+                const isFromTrans = item.sourceTransId !== null && item.sourceTransId !== undefined;
+                return `
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-bold text-slate-800 text-base">${escapeHtml(item.title)}</h3>
+                                ${isFromTrans ? `<button onclick="openExistingTranslationTab('${item.sourceTransId}')" class="text-xs text-indigo-600 hover:underline"><i class="fa-solid fa-link"></i> Bản dịch</button>` : '<span class="text-[10px] bg-amber-50 text-amber-700 px-2 py-0.5 rounded font-semibold">Độc lập</span>'}
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed mb-4">${escapeHtml(item.note || 'Không có lưu ý.')}</p>
+                        </div>
+                        ${!isFromTrans ? `
+                            <div class="pt-3 border-t border-slate-100 flex justify-end gap-3">
+                                <button onclick="openEditItemModal('skill', '${item.id}', null)" class="text-indigo-600 hover:text-indigo-800 text-xs font-medium flex items-center gap-1"><i class="fa-solid fa-pen"></i> Sửa</button>
+                                <button onclick="deleteStandaloneItem('skill', '${item.id}')" class="text-red-500 hover:text-red-700 text-xs font-medium flex items-center gap-1"><i class="fa-solid fa-trash"></i> Xóa</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('') || `<div class="col-span-full py-12 text-center text-slate-400">Chưa có kỹ năng nào.</div>`;
+        }
+
+        window.renderRecentTranslations = function() {
+            const container = document.getElementById('recentTranslationsGrid');
+            if (!container) return;
+
+            const recent = [...appData.translations].sort((a,b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0)).slice(0, 3);
+
+            container.innerHTML = recent.map(t => `
+                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 flex flex-col justify-between hover:border-indigo-300 transition">
+                    <div>
+                        <span class="text-[10px] font-bold text-indigo-600 uppercase bg-indigo-50 px-2 py-0.5 rounded">${escapeHtml(t.topic)}</span>
+                        <h4 class="font-bold text-slate-800 text-sm mt-2 line-clamp-2">${escapeHtml(t.source.headline || 'Bản dịch mới')}</h4>
+                    </div>
+                    <button onclick="openExistingTranslationTab('${t.id}')" class="mt-4 text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
+                        Mở bản dịch &rarr;
+                    </button>
+                </div>
+            `).join('') || `<p class="text-xs text-slate-400 italic">Chưa có bản dịch nào.</p>`;
+        }
+
+        window.updateDashboardStats = function() {
+            document.getElementById('statTransCount').textContent = appData.translations.length;
+            document.getElementById('statGlossaryCount').textContent = appData.glossary.length;
+            document.getElementById('statStructureCount').textContent = appData.structures.length;
+            document.getElementById('statSkillCount').textContent = appData.skills.length;
+
+            document.getElementById('transCountBadge').textContent = appData.translations.length;
+            document.getElementById('glossaryCountBadge').textContent = appData.glossary.length;
+            document.getElementById('structureCountBadge').textContent = appData.structures.length;
+            document.getElementById('skillCountBadge').textContent = appData.skills.length;
+        }
+
+        window.deleteTranslation = function(id) {
+            appData.translations = appData.translations.filter(t => t.id !== id);
+            // Also clean up linked glossary/structures/skills
+            appData.glossary = appData.glossary.filter(i => i.sourceTransId !== id);
+            appData.structures = appData.structures.filter(i => i.sourceTransId !== id);
+            appData.skills = appData.skills.filter(i => i.sourceTransId !== id);
+
+            // Close tab if open
+            if (openTabs.includes(id)) {
+                openTabs = openTabs.filter(tId => tId !== id);
+                const panel = document.getElementById(`editor-panel-${id}`);
+                if (panel) panel.remove();
+                if (activeTabId === id) switchMainTab('dashboard');
+            }
+
+            saveToLocalStorage();
+            triggerCloudSync();
+            renderTranslationsLibrary();
+            renderGlossaryLibrary();
+            renderStructureLibrary();
+            renderSkillsLibrary();
+            updateDashboardStats();
+            showToast("Đã xóa bản dịch thành công!", "success");
+        }
+
+        window.deleteStandaloneItem = function(type, id) {
+            if (type === 'glossary') {
+                appData.glossary = appData.glossary.filter(i => i.id !== id);
+                renderGlossaryLibrary();
+            } else if (type === 'structure') {
+                appData.structures = appData.structures.filter(i => i.id !== id);
+                renderStructureLibrary();
+            } else if (type === 'skill') {
+                appData.skills = appData.skills.filter(i => i.id !== id);
+                renderSkillsLibrary();
+            }
+            saveToLocalStorage();
+            triggerCloudSync();
+            updateDashboardStats();
+            showToast("Đã xóa thành công!", "success");
+        }
+        // --- STANDALONE & EDIT MODALS ---
+        window.openAddStandaloneModal = function(type) {
+            currentModalType = type;
+            currentEditContext = null;
+            const modal = document.getElementById('standaloneModal');
+            const titleEl = document.getElementById('standaloneModalTitle');
+            const bodyEl = document.getElementById('standaloneModalBody');
+            modal.classList.remove('hidden');
+
+            if (type === 'glossary') {
+                titleEl.textContent = "Thêm Thuật Ngữ Độc Lập";
+                bodyEl.innerHTML = `
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Chủ đề</label>
+                        <select id="modal-glossary-topic" class="w-full bg-slate-50 border rounded-lg p-2 text-sm">${getTopicOptionsHTML()}</select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Tiếng Việt (Vietnamese)</label>
+                        <input type="text" id="modal-glossary-vi" class="w-full bg-slate-50 border rounded-lg p-2 text-sm" placeholder="Nhập từ tiếng Việt...">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Tiếng Anh (English)</label>
+                        <input type="text" id="modal-glossary-en" class="w-full bg-slate-50 border rounded-lg p-2 text-sm" placeholder="Nhập từ tiếng Anh...">
+                    </div>
+                    <button onclick="saveStandaloneModalData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-xl shadow mt-2">Lưu thuật ngữ</button>
+                `;
+            } else if (type === 'structure') {
+                titleEl.textContent = "Thêm Cấu Trúc Độc Lập";
+                bodyEl.innerHTML = `
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Chủ đề</label>
+                        <select id="modal-struct-topic" class="w-full bg-slate-50 border rounded-lg p-2 text-sm">${getTopicOptionsHTML()}</select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Mô tả ngắn cấu trúc</label>
+                        <textarea id="modal-struct-desc" rows="2" class="w-full bg-slate-50 border rounded-lg p-2 text-sm" placeholder="Mô tả cấu trúc..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Loại cấu trúc</label>
+                        <input type="text" id="modal-struct-type" class="w-full bg-slate-50 border rounded-lg p-2 text-sm" placeholder="Loại cấu trúc...">
+                    </div>
+                    <button onclick="saveStandaloneModalData()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-semibold py-2.5 rounded-xl shadow mt-2">Lưu cấu trúc</button>
+                `;
+            } else if (type === 'skill') {
+                titleEl.textContent = "Thêm Kỹ Năng Độc Lập";
+                bodyEl.innerHTML = `
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Tên kỹ năng</label>
+                        <input type="text" id="modal-skill-title" class="w-full bg-slate-50 border rounded-lg p-2 text-sm" placeholder="Tên kỹ năng biên dịch...">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Lưu ý về kỹ năng</label>
+                        <textarea id="modal-skill-note" rows="3" class="w-full bg-slate-50 border rounded-lg p-2 text-sm" placeholder="Chi tiết lưu ý..."></textarea>
+                    </div>
+                    <button onclick="saveStandaloneModalData()" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-semibold py-2.5 rounded-xl shadow mt-2">Lưu kỹ năng</button>
+                `;
+            }
+        }
+
+        window.openEditItemModal = function(type, itemId, transId = null) {
+            currentModalType = type;
+            currentEditContext = { type, itemId, transId };
+            const modal = document.getElementById('standaloneModal');
+            const titleEl = document.getElementById('standaloneModalTitle');
+            const bodyEl = document.getElementById('standaloneModalBody');
+            modal.classList.remove('hidden');
+
+            let item = null;
+            if (type === 'glossary') item = appData.glossary.find(i => i.id === itemId);
+            if (type === 'structure') item = appData.structures.find(i => i.id === itemId);
+            if (type === 'skill') item = appData.skills.find(i => i.id === itemId);
+            if (!item) return;
+
+            if (type === 'glossary') {
+                titleEl.textContent = "Chỉnh sửa Thuật Ngữ";
+                bodyEl.innerHTML = `
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Chủ đề</label>
+                        <select id="modal-glossary-topic" class="w-full bg-slate-50 border rounded-lg p-2 text-sm">${getTopicOptionsHTML(item.topic)}</select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Tiếng Việt (Vietnamese)</label>
+                        <input type="text" id="modal-glossary-vi" value="${escapeHtml(item.vi)}" class="w-full bg-slate-50 border rounded-lg p-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Tiếng Anh (English)</label>
+                        <input type="text" id="modal-glossary-en" value="${escapeHtml(item.en)}" class="w-full bg-slate-50 border rounded-lg p-2 text-sm">
+                    </div>
+                    <button onclick="saveEditedItemModalData()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl shadow mt-2">Cập nhật thuật ngữ</button>
+                `;
+            } else if (type === 'structure') {
+                titleEl.textContent = "Chỉnh sửa Cấu Trúc";
+                bodyEl.innerHTML = `
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Chủ đề</label>
+                        <select id="modal-struct-topic" class="w-full bg-slate-50 border rounded-lg p-2 text-sm">${getTopicOptionsHTML(item.topic)}</select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Mô tả ngắn cấu trúc</label>
+                        <textarea id="modal-struct-desc" rows="2" class="w-full bg-slate-50 border rounded-lg p-2 text-sm">${escapeHtml(item.desc)}</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Loại cấu trúc</label>
+                        <input type="text" id="modal-struct-type" value="${escapeHtml(item.type)}" class="w-full bg-slate-50 border rounded-lg p-2 text-sm">
+                    </div>
+                    <button onclick="saveEditedItemModalData()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl shadow mt-2">Cập nhật cấu trúc</button>
+                `;
+            } else if (type === 'skill') {
+                titleEl.textContent = "Chỉnh sửa Kỹ Năng";
+                bodyEl.innerHTML = `
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Tên kỹ năng</label>
+                        <input type="text" id="modal-skill-title" value="${escapeHtml(item.title)}" class="w-full bg-slate-50 border rounded-lg p-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Lưu ý về kỹ năng</label>
+                        <textarea id="modal-skill-note" rows="3" class="w-full bg-slate-50 border rounded-lg p-2 text-sm">${escapeHtml(item.note)}</textarea>
+                    </div>
+                    <button onclick="saveEditedItemModalData()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 rounded-xl shadow mt-2">Cập nhật kỹ năng</button>
+                `;
+            }
+        }
+
+        window.saveEditedItemModalData = function() {
+            if (!currentEditContext) return;
+            const { type, itemId, transId } = currentEditContext;
+
+            if (type === 'glossary') {
+                const topic = document.getElementById('modal-glossary-topic').value;
+                const vi = document.getElementById('modal-glossary-vi').value.trim();
+                const en = document.getElementById('modal-glossary-en').value.trim();
+                if (!vi || !en) { showToast("Vui lòng điền đủ thông tin!", "error"); return; }
+
+                const globalItem = appData.glossary.find(i => i.id === itemId);
+                if (globalItem) { globalItem.topic = topic; globalItem.vi = vi; globalItem.en = en; }
+
+                if (transId) {
+                    const trans = appData.translations.find(t => t.id === transId);
+                    const localItem = trans?.glossary.find(i => i.id === itemId);
+                    if (localItem) { localItem.topic = topic; localItem.vi = vi; localItem.en = en; }
+                    renderTranslationSubItems(transId);
+                }
+                renderGlossaryLibrary();
+            } else if (type === 'structure') {
+                const topic = document.getElementById('modal-struct-topic').value;
+                const desc = document.getElementById('modal-struct-desc').value.trim();
+                const structType = document.getElementById('modal-struct-type').value.trim();
+                if (!desc || !structType) { showToast("Vui lòng điền đủ thông tin!", "error"); return; }
+
+                const globalItem = appData.structures.find(i => i.id === itemId);
+                if (globalItem) { globalItem.topic = topic; globalItem.desc = desc; globalItem.type = structType; }
+
+                if (transId) {
+                    const trans = appData.translations.find(t => t.id === transId);
+                    const localItem = trans?.structures.find(i => i.id === itemId);
+                    if (localItem) { localItem.topic = topic; localItem.desc = desc; localItem.type = structType; }
+                    renderTranslationSubItems(transId);
+                }
+                renderStructureLibrary();
+            } else if (type === 'skill') {
+                const title = document.getElementById('modal-skill-title').value.trim();
+                const note = document.getElementById('modal-skill-note').value.trim();
+                if (!title) { showToast("Vui lòng điền tên kỹ năng!", "error"); return; }
+
+                const globalItem = appData.skills.find(i => i.id === itemId);
+                if (globalItem) { globalItem.title = title; globalItem.note = note; }
+
+                if (transId) {
+                    const trans = appData.translations.find(t => t.id === transId);
+                    const localItem = trans?.skills.find(i => i.id === itemId);
+                    if (localItem) { localItem.title = title; localItem.note = note; }
+                    renderTranslationSubItems(transId);
+                }
+                renderSkillsLibrary();
+            }
+
+            saveToLocalStorage();
+            triggerCloudSync();
+            closeStandaloneModal();
+            showToast("Đã cập nhật thành công!", "success");
+        }
+
+        window.saveStandaloneModalData = function() {
+            if (currentModalType === 'glossary') {
+                const topic = document.getElementById('modal-glossary-topic').value;
+                const vi = document.getElementById('modal-glossary-vi').value.trim();
+                const en = document.getElementById('modal-glossary-en').value.trim();
+                if (!vi || !en) { showToast("Vui lòng điền đủ thông tin!", "error"); return; }
+                appData.glossary.push({ id: 'g-' + Date.now(), topic, vi, en, sourceTransId: null });
+                renderGlossaryLibrary();
+            } else if (currentModalType === 'structure') {
+                const topic = document.getElementById('modal-struct-topic').value;
+                const desc = document.getElementById('modal-struct-desc').value.trim();
+                const type = document.getElementById('modal-struct-type').value.trim();
+                if (!desc || !type) { showToast("Vui lòng điền đủ thông tin!", "error"); return; }
+                appData.structures.push({ id: 's-' + Date.now(), topic, desc, type, sourceTransId: null });
+                renderStructureLibrary();
+            } else if (currentModalType === 'skill') {
+                const title = document.getElementById('modal-skill-title').value.trim();
+                const note = document.getElementById('modal-skill-note').value.trim();
+                if (!title) { showToast("Vui lòng điền tên kỹ năng!", "error"); return; }
+                appData.skills.push({ id: 'sk-' + Date.now(), title, note, sourceTransId: null });
+                renderSkillsLibrary();
+            }
+
+            saveToLocalStorage();
+            triggerCloudSync();
+            updateDashboardStats();
+            closeStandaloneModal();
+            showToast("Đã thêm thành công!", "success");
+        }
+
+        // --- SUPER SENSITIVE SEARCH & HIGHLIGHT ---
+        function setupSearchListener() {
+            const input = document.getElementById('globalSearchInput');
+            if (!input) return;
+
+            input.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase().trim();
+                const section = document.getElementById('searchResultSection');
+                const list = document.getElementById('searchResultList');
+                const countBadge = document.getElementById('searchResultCount');
+
+                if (!query) {
+                    section.classList.add('hidden');
+                    return;
+                }
+
+                section.classList.remove('hidden');
+                let results = [];
+
+                // Search translations
+                appData.translations.forEach(t => {
+                    const matchSource = (t.source.headline + ' ' + t.source.standfirst + ' ' + t.source.body + ' ' + t.source.author).toLowerCase();
+                    const matchTarget = (t.target.headline + ' ' + t.target.standfirst + ' ' + t.target.body + ' ' + t.target.author).toLowerCase();
+                    const matchTopic = t.topic.toLowerCase();
+
+                    if (matchSource.includes(query) || matchTarget.includes(query) || matchTopic.includes(query)) {
+                        results.push({
+                            type: 'translation',
+                            title: t.source.headline || 'Bản dịch',
+                            topic: t.topic,
+                            snippet: highlightMatch(t.source.body || t.target.body || '', query),
+                            id: t.id
+                        });
+                    }
+                });
+
+                // Search glossary
+                appData.glossary.forEach(g => {
+                    if ((g.vi + ' ' + g.en + ' ' + g.topic).toLowerCase().includes(query)) {
+                        results.push({
+                            type: 'glossary',
+                            title: `${g.vi} - ${g.en}`,
+                            topic: g.topic,
+                            snippet: `Thuật ngữ chuyên ngành (${g.topic})`,
+                            id: g.sourceTransId
+                        });
+                    }
+                });
+
+                countBadge.textContent = results.length;
+                list.innerHTML = results.map(r => `
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-start gap-4">
+                        <div>
+                            <span class="text-[10px] font-bold px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded uppercase">${r.type} • ${escapeHtml(r.topic)}</span>
+                            <h4 class="font-bold text-slate-800 text-sm mt-1">${highlightMatch(r.title, query)}</h4>
+                            <p class="text-xs text-slate-600 mt-1">${r.snippet}</p>
+                        </div>
+                        ${r.id ? `<button onclick="openExistingTranslationTab('${r.id}')" class="text-xs font-semibold text-indigo-600 hover:underline whitespace-nowrap">Mở xem &rarr;</button>` : ''}
+                    </div>
+                `).join('') || `<p class="text-xs text-slate-400 italic">Không tìm thấy kết quả phù hợp cho "${escapeHtml(query)}".</p>`;
+            });
+        }
+
+        window.clearSearch = function() {
+            document.getElementById('globalSearchInput').value = '';
+            document.getElementById('searchResultSection').classList.add('hidden');
+        }
+
+        function highlightMatch(text, query) {
+            if (!text) return '';
+            const safeText = escapeHtml(text);
+            if (!query) return safeText;
+            const regex = new RegExp(`(${escapeRegExp(query)})`, 'gi');
+            return safeText.replace(regex, '<mark class="bg-amber-200 text-slate-900 px-0.5 rounded">$1</mark>');
+        }
+
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        // --- PDF EXPORT (Times New Roman 13pt) ---
+        window.exportSingleTranslationPDF = function(transId) {
+            const trans = appData.translations.find(t => t.id === transId);
+            if (!trans) return;
+
+            const printWin = window.open('', '_blank');
+            printWin.document.write(`
+                <!DOCTYPE html>
+                <html lang="vi">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>${trans.source.headline || 'Bản dịch'}</title>
+                    <style>
+                        body { font-family: 'Times New Roman', Times, serif; font-size: 13pt; line-height: 1.6; color: #000; margin: 40px; }
+                        h1 { font-size: 18pt; font-weight: bold; margin-bottom: 10px; }
+                        h2 { font-size: 15pt; font-weight: bold; margin-top: 20px; border-bottom: 1px solid #000; padding-bottom: 5px; }
+                        h3 { font-size: 13pt; font-weight: bold; margin-top: 15px; }
+                        .meta { font-style: italic; margin-bottom: 20px; font-size: 12pt; }
+                        .section { margin-bottom: 25px; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12pt; }
+                        th, td { border: 1px solid #000; padding: 8px; text-align: left; }
+                        th { background-color: #f2f2f2; }
+                    </style>
+                </head>
+                <body>
+                    <h1>${escapeHtml(trans.source.headline || 'Bản dịch')}</h1>
+                    <div class="meta">
+                        <p><strong>Chủ đề:</strong> ${escapeHtml(trans.topic)} | <strong>Tác giả gốc:</strong> ${escapeHtml(trans.source.author || 'N/A')} | <strong>Nguồn:</strong> ${escapeHtml(trans.source.sourceUrl || 'N/A')}</p>
+                    </div>
+
+                    <div class="section">
+                        <h2>1. Bản gốc (Vietnamese Source Text)</h2>
+                        <h3>${escapeHtml(trans.source.headline || '')}</h3>
+                        <p><strong>Sapo:</strong> ${escapeHtml(trans.source.standfirst || '')}</p>
+                        <p>${escapeHtml(trans.source.body || '').replace(/\n/g, '<br>')}</p>
+                    </div>
+
+                    <div class="section">
+                        <h2>2. Bản dịch (English Target Text)</h2>
+                        <h3>${escapeHtml(trans.target.headline || '')}</h3>
+                        <p><strong>Standfirst:</strong> ${escapeHtml(trans.target.standfirst || '')}</p>
+                        <p>${escapeHtml(trans.target.body || '').replace(/\n/g, '<br>')}</p>
+                        <p><em>Người dịch: ${escapeHtml(trans.target.author || 'N/A')}</em></p>
+                    </div>
+
+                    <div class="section">
+                        <h2>3. Thuật ngữ kèm theo (Glossary)</h2>
+                        <table>
+                            <thead><tr><th>Tiếng Việt</th><th>Tiếng Anh</th></tr></thead>
+                            <tbody>
+                                ${trans.glossary.map(g => `<tr><td>${escapeHtml(g.vi)}</td><td>${escapeHtml(g.en)}</td></tr>`).join('') || '<tr><td colspan="2">Không có thuật ngữ.</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="section">
+                        <h2>4. Cấu trúc ngữ pháp (Structures)</h2>
+                        <table>
+                            <thead><tr><th>Mô tả cấu trúc</th><th>Loại</th></tr></thead>
+                            <tbody>
+                                ${trans.structures.map(s => `<tr><td>${escapeHtml(s.desc)}</td><td>${escapeHtml(s.type)}</td></tr>`).join('') || '<tr><td colspan="2">Không có cấu trúc.</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="section">
+                        <h2>5. Kỹ năng biên dịch (Skills & Notes)</h2>
+                        <ul>
+                            ${trans.skills.map(sk => `<li><strong>${escapeHtml(sk.title)}:</strong> ${escapeHtml(sk.note)}</li>`).join('') || '<li>Không có kỹ năng ghi chú.</li>'}
+                        </ul>
+                    </div>
+
+                    <script>
+                        window.onload = function() { window.print(); }
+                    <\/script>
+                </body>
+                </html>
+            `);
+            printWin.document.close();
+        }
+
+        // --- BATCH PDF EXPORT LOGIC ---
+        window.openBatchPdfModal = function() {
+            if (appData.translations.length === 0) {
+                showToast("Thư viện chưa có bản dịch nào để xuất PDF!", "error");
+                return;
+            }
+            batchPdfSelectedIds = appData.translations.map(t => t.id);
+            renderBatchPdfModalLists();
+            document.getElementById('batchPdfModal').classList.remove('hidden');
+        }
+
+        window.closeBatchPdfModal = function() {
+            document.getElementById('batchPdfModal').classList.add('hidden');
+        }
+
+        window.toggleSelectAllBatchPdf = function() {
+            if (batchPdfSelectedIds.length === appData.translations.length) {
+                batchPdfSelectedIds = [];
+            } else {
+                batchPdfSelectedIds = appData.translations.map(t => t.id);
+            }
+            renderBatchPdfModalLists();
+        }
+
+        window.toggleBatchPdfItem = function(id) {
+            if (batchPdfSelectedIds.includes(id)) {
+                batchPdfSelectedIds = batchPdfSelectedIds.filter(item => item !== id);
+            } else {
+                batchPdfSelectedIds.push(id);
+            }
+            renderBatchPdfModalLists();
+        }
+
+        window.moveBatchPdfItem = function(index, direction) {
+            const targetIndex = index + direction;
+            if (targetIndex < 0 || targetIndex >= batchPdfSelectedIds.length) return;
+            const temp = batchPdfSelectedIds[index];
+            batchPdfSelectedIds[index] = batchPdfSelectedIds[targetIndex];
+            batchPdfSelectedIds[targetIndex] = temp;
+            renderBatchPdfModalLists();
+        }
+
+        function renderBatchPdfModalLists() {
+            const availableEl = document.getElementById('batchPdfAvailableList');
+            const orderedEl = document.getElementById('batchPdfOrderedList');
+            const countEl = document.getElementById('batchPdfSelectedCount');
+
+            countEl.textContent = batchPdfSelectedIds.length;
+
+            availableEl.innerHTML = appData.translations.map(t => {
+                const isChecked = batchPdfSelectedIds.includes(t.id);
+                return `
+                    <label class="flex items-start gap-2.5 p-2.5 bg-white rounded-lg border cursor-pointer hover:border-indigo-400 transition">
+                        <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleBatchPdfItem('${t.id}')" class="mt-0.5 rounded text-rose-600 focus:ring-rose-500">
+                        <div class="min-w-0 flex-1">
+                            <p class="text-xs font-bold text-slate-800 truncate">${escapeHtml(t.source.headline || 'Bản dịch chưa đặt tên')}</p>
+                            <span class="text-[10px] text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">${escapeHtml(t.topic)}</span>
+                        </div>
+                    </label>
+                `;
+            }).join('');
+
+            orderedEl.innerHTML = batchPdfSelectedIds.map((id, idx) => {
+                const t = appData.translations.find(item => item.id === id);
+                if (!t) return '';
+                return `
+                    <div class="flex items-center justify-between gap-2 p-2.5 bg-white rounded-lg border border-slate-200">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="w-5 h-5 rounded-full bg-rose-100 text-rose-700 text-xs font-bold flex items-center justify-center shrink-0">${idx + 1}</span>
+                            <p class="text-xs font-semibold text-slate-800 truncate">${escapeHtml(t.source.headline || 'Bản dịch chưa đặt tên')}</p>
+                        </div>
+                        <div class="flex items-center gap-1 shrink-0">
+                            <button onclick="moveBatchPdfItem(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} title="Đưa lên" class="p-1 text-slate-500 hover:text-indigo-600 disabled:opacity-30"><i class="fa-solid fa-arrow-up text-xs"></i></button>
+                            <button onclick="moveBatchPdfItem(${idx}, 1)" ${idx === batchPdfSelectedIds.length - 1 ? 'disabled' : ''} title="Đưa xuống" class="p-1 text-slate-500 hover:text-indigo-600 disabled:opacity-30"><i class="fa-solid fa-arrow-down text-xs"></i></button>
+                        </div>
+                    </div>
+                `;
+            }).join('') || `<p class="text-xs text-slate-400 italic text-center py-6">Chưa chọn bản dịch nào.</p>`;
+        }
+
+        window.executeBatchPdfExport = function() {
+            if (batchPdfSelectedIds.length === 0) {
+                showToast("Vui lòng chọn ít nhất 1 bản dịch để xuất PDF!", "error");
+                return;
+            }
+
+            const selectedTranslations = batchPdfSelectedIds
+                .map(id => appData.translations.find(t => t.id === id))
+                .filter(Boolean);
+
+            const printWin = window.open('', '_blank');
+            const articlesHtml = selectedTranslations.map((trans, idx) => `
+                <div class="article-block ${idx < selectedTranslations.length - 1 ? 'page-break' : ''}">
+                    <div class="article-header-badge">BÀI SỐ ${idx + 1} / ${selectedTranslations.length}</div>
+                    <h1>${escapeHtml(trans.source.headline || 'Bản dịch')}</h1>
+                    <div class="meta">
+                        <p><strong>Chủ đề:</strong> ${escapeHtml(trans.topic)} | <strong>Tác giả gốc:</strong> ${escapeHtml(trans.source.author || 'N/A')} | <strong>Nguồn:</strong> ${escapeHtml(trans.source.sourceUrl || 'N/A')}</p>
+                    </div>
+
+                    <div class="section">
+                        <h2>1. Bản gốc (Vietnamese Source Text)</h2>
+                        <h3>${escapeHtml(trans.source.headline || '')}</h3>
+                        <p><strong>Sapo:</strong> ${escapeHtml(trans.source.standfirst || '')}</p>
+                        <p>${escapeHtml(trans.source.body || '').replace(/\n/g, '<br>')}</p>
+                    </div>
+
+                    <div class="section">
+                        <h2>2. Bản dịch (English Target Text)</h2>
+                        <h3>${escapeHtml(trans.target.headline || '')}</h3>
+                        <p><strong>Standfirst:</strong> ${escapeHtml(trans.target.standfirst || '')}</p>
+                        <p>${escapeHtml(trans.target.body || '').replace(/\n/g, '<br>')}</p>
+                        <p><em>Người dịch (Translator): ${escapeHtml(trans.target.author || 'N/A')}</em></p>
+                    </div>
+
+                    <div class="section">
+                        <h2>3. Thuật ngữ kèm theo (Glossary)</h2>
+                        <table>
+                            <thead><tr><th>Tiếng Việt</th><th>Tiếng Anh</th></tr></thead>
+                            <tbody>
+                                ${trans.glossary.map(g => `<tr><td>${escapeHtml(g.vi)}</td><td>${escapeHtml(g.en)}</td></tr>`).join('') || '<tr><td colspan="2">Không có thuật ngữ.</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="section">
+                        <h2>4. Cấu trúc ngữ pháp (Structures)</h2>
+                        <table>
+                            <thead><tr><th>Mô tả cấu trúc</th><th>Loại</th></tr></thead>
+                            <tbody>
+                                ${trans.structures.map(s => `<tr><td>${escapeHtml(s.desc)}</td><td>${escapeHtml(s.type)}</td></tr>`).join('') || '<tr><td colspan="2">Không có cấu trúc.</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="section">
+                        <h2>5. Kỹ năng biên dịch (Skills & Notes)</h2>
+                        <ul>
+                            ${trans.skills.map(sk => `<li><strong>${escapeHtml(sk.title)}:</strong> ${escapeHtml(sk.note)}</li>`).join('') || '<li>Không có kỹ năng ghi chú.</li>'}
+                        </ul>
+                    </div>
+                </div>
+            `).join('');
+
+            printWin.document.write(`
+                <!DOCTYPE html>
+                <html lang="vi">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>MVETL - Xuất PDF Hàng Loạt (${selectedTranslations.length} bài)</title>
+                    <style>
+                        body { font-family: 'Times New Roman', Times, serif; font-size: 13pt; line-height: 1.6; color: #000; margin: 40px; }
+                        .article-header-badge { font-size: 11pt; font-weight: bold; text-transform: uppercase; border: 1px solid #000; display: inline-block; padding: 2px 8px; margin-bottom: 8px; }
+                        h1 { font-size: 18pt; font-weight: bold; margin-bottom: 10px; }
+                        h2 { font-size: 15pt; font-weight: bold; margin-top: 20px; border-bottom: 1px solid #000; padding-bottom: 5px; }
+                        h3 { font-size: 13pt; font-weight: bold; margin-top: 15px; }
+                        .meta { font-style: italic; margin-bottom: 20px; font-size: 12pt; }
+                        .section { margin-bottom: 25px; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12pt; }
+                        th, td { border: 1px solid #000; padding: 8px; text-align: left; }
+                        th { background-color: #f2f2f2; }
+                        .page-break { page-break-after: always; border-bottom: 2px dashed #999; padding-bottom: 30px; margin-bottom: 40px; }
+                        @media print {
+                            .page-break { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${articlesHtml}
+                    <script>
+                        window.onload = function() { window.print(); }
+                    <\/script>
+                </body>
+                </html>
+            `);
+            printWin.document.close();
+            closeBatchPdfModal();
+        }
+
+        // --- TOAST NOTIFICATIONS ---
+        window.showToast = function(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `pointer-events-auto px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium flex items-center gap-3 transition transform translate-y-2 opacity-0 ${type === 'success' ? 'bg-emerald-600' : 'bg-red-600'}`;
+            toast.innerHTML = `
+                <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // --- GLOSSARY QUIZ LOGIC ---
+        window.toggleQuizTopicCheckboxes = function() {
+            const mixAll = document.getElementById('quizMixTopics').checked;
+            document.querySelectorAll('.quiz-topic-cb').forEach(cb => {
+                cb.disabled = mixAll;
+            });
+        }
+
+        window.resetQuizUI = function() {
+            document.getElementById('quizConfigPanel').classList.remove('hidden');
+            document.getElementById('quizArenaPanel').classList.add('hidden');
+            document.getElementById('quizResultPanel').classList.add('hidden');
+        }
+
+        window.startGlossaryQuiz = function() {
+            const mode = document.querySelector('input[name="quizMode"]:checked').value;
+            let count = parseInt(document.getElementById('quizQuestionCount').value, 10) || 10;
+            if (count < 1) count = 1;
+            if (count > 100) count = 100;
+
+            const mixAll = document.getElementById('quizMixTopics').checked;
+            let pool = [...appData.glossary];
+
+            if (!mixAll) {
+                const selectedTopics = Array.from(document.querySelectorAll('.quiz-topic-cb:checked')).map(cb => cb.value);
+                if (selectedTopics.length === 0) {
+                    showToast("Vui lòng chọn ít nhất 1 chủ đề hoặc bật Mix tất cả!", "error");
+                    return;
+                }
+                pool = pool.filter(g => selectedTopics.includes(g.topic));
+            }
+
+            if (pool.length === 0) {
+                showToast("Không có thuật ngữ nào trong các chủ đề đã chọn!", "error");
+                return;
+            }
+
+            if (mode === 'mc' && appData.glossary.length < 2) {
+                showToast("Cần ít nhất 2 thuật ngữ trong thư viện để chơi Multiple Choice!", "error");
+                return;
+            }
+
+            // Shuffle and slice pool
+            pool = pool.sort(() => Math.random() - 0.5).slice(0, count);
+
+            quizState = {
+                questions: pool,
+                currentIndex: 0,
+                score: 0,
+                mode,
+                answered: false,
+                history: []
+            };
+
+            document.getElementById('quizConfigPanel').classList.add('hidden');
+            document.getElementById('quizResultPanel').classList.add('hidden');
+            document.getElementById('quizArenaPanel').classList.remove('hidden');
+
+            renderQuizQuestion();
+        }
+
+        function renderQuizQuestion() {
+            const q = quizState.questions[quizState.currentIndex];
+            quizState.answered = false;
+
+            document.getElementById('quizCurrentIdx').textContent = quizState.currentIndex + 1;
+            document.getElementById('quizTotalIdx').textContent = quizState.questions.length;
+            document.getElementById('quizScore').textContent = quizState.score;
+            document.getElementById('quizQuestionTopic').textContent = q.topic;
+            document.getElementById('quizQuestionPrompt').textContent = q.vi;
+
+            const feedbackBox = document.getElementById('quizFeedbackBox');
+            feedbackBox.classList.add('hidden');
+
+            if (quizState.mode === 'mc') {
+                document.getElementById('quizMcOptions').classList.remove('hidden');
+                document.getElementById('quizTypingContainer').classList.add('hidden');
+
+                // Generate 4 options
+                const distractors = appData.glossary
+                    .filter(item => item.id !== q.id && item.en.toLowerCase() !== q.en.toLowerCase())
+                    .sort(() => Math.random() - 0.5)
+                    .slice(0, 3)
+                    .map(item => item.en);
+
+                const options = [q.en, ...distractors].sort(() => Math.random() - 0.5);
+
+                const mcContainer = document.getElementById('quizMcOptions');
+                mcContainer.innerHTML = options.map((opt, idx) => `
+                    <button onclick="selectMcOption(this, '${escapeHtml(opt).replace(/'/g, "\\'")}')" 
+                        class="quiz-opt-btn p-4 text-left bg-white border-2 border-slate-200 hover:border-indigo-500 rounded-xl font-semibold text-slate-800 transition shadow-sm flex items-center gap-3">
+                        <span class="w-7 h-7 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center text-xs font-bold">${String.fromCharCode(65 + idx)}</span>
+                        <span>${escapeHtml(opt)}</span>
+                    </button>
+                `).join('');
+            } else {
+                document.getElementById('quizMcOptions').classList.add('hidden');
+                document.getElementById('quizTypingContainer').classList.remove('hidden');
+                const input = document.getElementById('quizTypingInput');
+                input.value = '';
+                input.disabled = false;
+                document.getElementById('quizTypingSubmitBtn').disabled = false;
+                setTimeout(() => input.focus(), 50);
+            }
+        }
+
+        window.selectMcOption = function(btnEl, selectedAns) {
+            if (quizState.answered) return;
+            quizState.answered = true;
+
+            const q = quizState.questions[quizState.currentIndex];
+            const isCorrect = selectedAns.trim().toLowerCase() === q.en.trim().toLowerCase();
+
+            document.querySelectorAll('.quiz-opt-btn').forEach(btn => {
+                btn.disabled = true;
+                if (btn.textContent.trim().endsWith(q.en)) {
+                    btn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-800');
+                }
+            });
+
+            if (isCorrect) {
+                quizState.score++;
+                btnEl.classList.add('border-emerald-500', 'bg-emerald-50');
+                showQuizFeedback(true, `Chính xác! "${q.vi}" = "${q.en}"`);
+            } else {
+                btnEl.classList.add('border-red-500', 'bg-red-50', 'text-red-800');
+                showQuizFeedback(false, `Chưa đúng! Đáp án đúng là: "${q.en}"`);
+            }
+
+            quizState.history.push({ vi: q.vi, en: q.en, userAns: selectedAns, isCorrect });
+            document.getElementById('quizScore').textContent = quizState.score;
+        }
+
+        window.submitTypingAnswer = function() {
+            if (quizState.answered) return;
+            const input = document.getElementById('quizTypingInput');
+            const userAns = input.value.trim();
+            if (!userAns) return;
+
+            quizState.answered = true;
+            input.disabled = true;
+            document.getElementById('quizTypingSubmitBtn').disabled = true;
+
+            const q = quizState.questions[quizState.currentIndex];
+            const isCorrect = userAns.toLowerCase() === q.en.trim().toLowerCase();
+
+            if (isCorrect) {
+                quizState.score++;
+                showQuizFeedback(true, `Tuyệt vời! Đáp án chính xác: "${q.en}"`);
+            } else {
+                showQuizFeedback(false, `Sai rồi! Bạn nhập "${userAns}", đáp án đúng là: "${q.en}"`);
+            }
+
+            quizState.history.push({ vi: q.vi, en: q.en, userAns, isCorrect });
+            document.getElementById('quizScore').textContent = quizState.score;
+        }
+
+        function showQuizFeedback(isCorrect, text) {
+            const box = document.getElementById('quizFeedbackBox');
+            const textEl = document.getElementById('quizFeedbackText');
+            box.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-800', 'bg-red-50', 'text-red-800');
+            box.classList.add(isCorrect ? 'bg-emerald-50' : 'bg-red-50', isCorrect ? 'text-emerald-800' : 'text-red-800');
+            textEl.textContent = text;
+        }
+
+        window.nextQuizQuestion = function() {
+            quizState.currentIndex++;
+            if (quizState.currentIndex >= quizState.questions.length) {
+                finishGlossaryQuiz();
+            } else {
+                renderQuizQuestion();
+            }
+        }
+
+        function finishGlossaryQuiz() {
+            document.getElementById('quizArenaPanel').classList.add('hidden');
+            document.getElementById('quizResultPanel').classList.remove('hidden');
+
+            document.getElementById('quizFinalScore').textContent = quizState.score;
+            document.getElementById('quizFinalTotal').textContent = quizState.questions.length;
+
+            const reviewList = document.getElementById('quizReviewList');
+            reviewList.innerHTML = quizState.history.map((h, i) => `
+                <div class="p-2.5 rounded-lg border text-xs flex justify-between items-center ${h.isCorrect ? 'bg-emerald-50/60 border-emerald-200' : 'bg-red-50/60 border-red-200'}">
+                    <div>
+                        <p class="font-bold text-slate-800">${i + 1}. ${escapeHtml(h.vi)} &rarr; <span class="text-indigo-700">${escapeHtml(h.en)}</span></p>
+                        ${!h.isCorrect ? `<p class="text-red-600 mt-0.5">Bạn chọn/nhập: ${escapeHtml(h.userAns)}</p>` : ''}
+                    </div>
+                    <span class="font-bold ${h.isCorrect ? 'text-emerald-600' : 'text-red-600'}">
+                        ${h.isCorrect ? '<i class="fa-solid fa-check"></i>' : '<i class="fa-solid fa-xmark"></i>'}
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        window.quitQuiz = function() {
+            resetQuizUI();
+        }
+    </script>
+</body>
+</html>
